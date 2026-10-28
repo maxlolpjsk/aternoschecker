@@ -48,12 +48,12 @@
             statusEl.style.color = "#89b4fa";
 
             try {
-                // Added a cache-buster parameter (?t=...) so minetools doesn't serve a stale cached response
+                // Fetching with a strict timestamp cache-buster
                 const res = await fetch(`https://api.minetools.eu/ping/${HOST}/${PORT}?t=${Date.now()}`);
                 const data = await res.json();
                 
-                // Strict check: Must have no error, valid players object, AND online flag true if provided
-                if (data.error || !data.players || typeof data.players.online === 'undefined') {
+                // Check if minetools returned a valid response with max slots defined (offline servers usually omit or return null max players)
+                if (data.error || !data.players || data.players.max === undefined) {
                     statusEl.innerText = "OFFLINE";
                     statusEl.style.color = "#f38ba8";
                     infoEl.innerText = "Server is currently offline.";
