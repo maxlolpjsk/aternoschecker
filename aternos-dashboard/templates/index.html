@@ -34,10 +34,12 @@
         <button id="startBtn" class="btn btn-start" onclick="startServer()">⚡ START SERVER</button>
         <button id="refreshBtn" class="btn btn-refresh" onclick="checkStatus()">🔄 Refresh Status</button>
 
-        <div id="info" class="info-text">Connecting to server backend...</div>
+        <div id="info" class="info-text">Connecting to server status...</div>
     </div>
 
     <script>
+        const SERVER_ADDRESS = "MaxMax123321MM.aternos.me:13753";
+
         async function checkStatus() {
             const statusEl = document.getElementById('status');
             const infoEl = document.getElementById('info');
@@ -45,25 +47,23 @@
             statusEl.style.color = "#89b4fa";
             
             try {
-                const res = await fetch('/api/status');
+                // Queries mcstatus.io directly from the user's phone browser (bypasses Render/Cloudflare blocks)
+                const res = await fetch(`https://api.mcstatus.io/v2/status/java/${SERVER_ADDRESS}`);
                 const data = await res.json();
-                if (data.success) {
-                    const st = data.status.toUpperCase();
-                    statusEl.innerText = st;
-                    if (st === "ONLINE") statusEl.style.color = "#a6e3a1";
-                    else if (st === "OFFLINE") statusEl.style.color = "#f38ba8";
-                    else statusEl.style.color = "#f9e2af";
-
-                    infoEl.innerText = st === "ONLINE" ? `Players: ${data.players}/${data.max_players}` : `Server is currently ${data.status}.`;
+                
+                if (data.online) {
+                    statusEl.innerText = "ONLINE";
+                    statusEl.style.color = "#a6e3a1";
+                    infoEl.innerText = `Players: ${data.players.online}/${data.players.max}`;
                 } else {
-                    statusEl.innerText = "ERROR";
+                    statusEl.innerText = "OFFLINE";
                     statusEl.style.color = "#f38ba8";
-                    infoEl.innerText = "Failed to reach Aternos.";
+                    infoEl.innerText = "Server is currently offline.";
                 }
             } catch (err) {
-                statusEl.innerText = "OFFLINE";
+                statusEl.innerText = "ERROR";
                 statusEl.style.color = "#f38ba8";
-                infoEl.innerText = "Backend server unreachable.";
+                infoEl.innerText = "Failed to fetch server status.";
             }
         }
 
@@ -71,15 +71,15 @@
             const startBtn = document.getElementById('startBtn');
             const infoEl = document.getElementById('info');
             startBtn.disabled = true;
-            infoEl.innerText = "Sending start command to Aternos...";
+            infoEl.innerText = "Sending start command via backend...";
 
             try {
                 const res = await fetch('/api/start', { method: 'POST' });
                 const data = await res.json();
                 infoEl.innerText = data.message;
-                setTimeout(checkStatus, 3000);
+                setTimeout(checkStatus, 5000);
             } catch (err) {
-                infoEl.innerText = "Error starting server.";
+                infoEl.innerText = "Error triggering start command.";
             } finally {
                 startBtn.disabled = false;
             }
