@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minecraft Server Manager</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+        body { background-color: #11111b; color: #cdd6f4; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+        .card { background: #1e1e2e; border: 1px solid #313244; border-radius: 16px; padding: 28px; width: 100%; max-width: 420px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+        h1 { font-size: 1.5rem; margin-bottom: 8px; color: #cdd6f4; }
+        .ip-badge { background: #181825; color: #a6adc8; display: inline-block; padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; margin-bottom: 24px; font-family: monospace; }
+        .status-box { background: #181825; border-radius: 12px; padding: 20px; margin-bottom: 24px; border: 1px solid #313244; }
+        .status-label { font-size: 0.8rem; color: #a6adc8; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+        .status-value { font-size: 2rem; font-weight: 800; text-transform: uppercase; color: #89b4fa; }
+        .btn { width: 100%; padding: 16px; border: none; border-radius: 12px; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: transform 0.1s, opacity 0.2s; margin-bottom: 12px; }
+        .btn:active { transform: scale(0.98); }
+        .btn-start { background: #a6e3a1; color: #11111b; }
+        .btn-refresh { background: #313244; color: #cdd6f4; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .info-text { font-size: 0.85rem; color: #a6adc8; margin-top: 12px; min-height: 20px; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>Server Manager</h1>
+        <div class="ip-badge">MaxMax123321MM.aternos.me:13753</div>
+
+        <div class="status-box">
+            <div class="status-label">Current Status</div>
+            <div id="status" class="status-value">CHECKING...</div>
+        </div>
+
+        <button id="startBtn" class="btn btn-start" onclick="startServer()">⚡ START SERVER</button>
+        <button id="refreshBtn" class="btn btn-refresh" onclick="checkStatus()">🔄 Refresh Status</button>
+
+        <div id="info" class="info-text">Connecting to server backend...</div>
+    </div>
+
+    <script>
+        async function checkStatus() {
+            const statusEl = document.getElementById('status');
+            const infoEl = document.getElementById('info');
+            statusEl.innerText = "CHECKING...";
+            statusEl.style.color = "#89b4fa";
+            
+            try {
+                const res = await fetch('/api/status');
+                const data = await res.json();
+                if (data.success) {
+                    const st = data.status.toUpperCase();
+                    statusEl.innerText = st;
+                    if (st === "ONLINE") statusEl.style.color = "#a6e3a1";
+                    else if (st === "OFFLINE") statusEl.style.color = "#f38ba8";
+                    else statusEl.style.color = "#f9e2af";
+
+                    infoEl.innerText = st === "ONLINE" ? `Players: ${data.players}/${data.max_players}` : `Server is currently ${data.status}.`;
+                } else {
+                    statusEl.innerText = "ERROR";
+                    statusEl.style.color = "#f38ba8";
+                    infoEl.innerText = "Failed to reach Aternos.";
+                }
+            } catch (err) {
+                statusEl.innerText = "OFFLINE";
+                statusEl.style.color = "#f38ba8";
+                infoEl.innerText = "Backend server unreachable.";
+            }
+        }
+
+        async function startServer() {
+            const startBtn = document.getElementById('startBtn');
+            const infoEl = document.getElementById('info');
+            startBtn.disabled = true;
+            infoEl.innerText = "Sending start command to Aternos...";
+
+            try {
+                const res = await fetch('/api/start', { method: 'POST' });
+                const data = await res.json();
+                infoEl.innerText = data.message;
+                setTimeout(checkStatus, 3000);
+            } catch (err) {
+                infoEl.innerText = "Error starting server.";
+            } finally {
+                startBtn.disabled = false;
+            }
+        }
+
+        checkStatus();
+    </script>
+</body>
+</html>
