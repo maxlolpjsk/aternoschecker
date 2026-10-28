@@ -3,67 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Minecraft Server Status</title>
+    <title>Minecraft Server</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
         body { background-color: #11111b; color: #cdd6f4; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
         .card { background: #1e1e2e; border: 1px solid #313244; border-radius: 16px; padding: 28px; width: 100%; max-width: 420px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
         h1 { font-size: 1.5rem; margin-bottom: 8px; color: #cdd6f4; }
-        .ip-badge { background: #181825; color: #a6adc8; display: inline-block; padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; margin-bottom: 24px; font-family: monospace; }
-        .status-box { background: #181825; border-radius: 12px; padding: 20px; margin-bottom: 24px; border: 1px solid #313244; }
-        .status-label { font-size: 0.8rem; color: #a6adc8; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
-        .status-value { font-size: 2rem; font-weight: 800; text-transform: uppercase; color: #89b4fa; }
-        .btn { width: 100%; padding: 16px; border: none; border-radius: 12px; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: transform 0.1s, opacity 0.2s; margin-bottom: 12px; }
+        p { font-size: 0.9rem; color: #a6adc8; margin-bottom: 20px; }
+        .ip-box { background: #181825; border: 1px solid #313244; border-radius: 12px; padding: 16px; margin-bottom: 20px; }
+        .ip-text { font-family: monospace; font-size: 1rem; color: #89b4fa; word-break: break-all; margin-bottom: 12px; }
+        .btn { width: 100%; padding: 16px; border: none; border-radius: 12px; font-size: 1.05rem; font-weight: bold; cursor: pointer; transition: transform 0.1s; }
         .btn:active { transform: scale(0.98); }
-        .btn-refresh { background: #313244; color: #cdd6f4; }
-        .info-text { font-size: 0.85rem; color: #a6adc8; margin-top: 12px; min-height: 20px; }
+        .btn-copy { background: #a6e3a1; color: #11111b; }
     </style>
 </head>
 <body>
     <div class="card">
-        <h1>Server Status</h1>
-        <div class="ip-badge">MaxMax123321MM.aternos.me:13753</div>
+        <h1>Minecraft Server</h1>
+        <p>Tap below to copy the server address and join your friends!</p>
 
-        <div class="status-box">
-            <div class="status-label">Current Status</div>
-            <div id="status" class="status-value">CHECKING...</div>
+        <div class="ip-box">
+            <div id="serverIp" class="ip-text">MaxMax123321MM.aternos.me:13753</div>
+            <button class="btn btn-copy" onclick="copyIp()">📋 Copy Server IP</button>
         </div>
-
-        <button id="refreshBtn" class="btn btn-refresh" onclick="checkStatus()">🔄 Refresh Status</button>
-
-        <div id="info" class="info-text">Auto-refreshing every 10 seconds...</div>
     </div>
 
     <script>
-        const SERVER_ADDRESS = "MaxMax123321MM.aternos.me:13753";
-
-        async function checkStatus() {
-            const statusEl = document.getElementById('status');
-            const infoEl = document.getElementById('info');
-            
-            try {
-                // Cache-buster (?t=...) prevents the API from serving stale cached results
-                const res = await fetch(`https://api.mcsrvstat.us/2/${SERVER_ADDRESS}?t=${Date.now()}`);
-                const data = await res.json();
-                
-                if (data.online) {
-                    statusEl.innerText = "ONLINE";
-                    statusEl.style.color = "#a6e3a1";
-                    infoEl.innerText = `Players: ${data.players.online}/${data.players.max}`;
-                } else {
-                    statusEl.innerText = "OFFLINE";
-                    statusEl.style.color = "#f38ba8";
-                    infoEl.innerText = "Server is currently offline.";
-                }
-            } catch (err) {
-                statusEl.innerText = "ERROR";
-                statusEl.style.color = "#f38ba8";
-                infoEl.innerText = "Failed to fetch status.";
-            }
+        function copyIp() {
+            const ipText = "MaxMax123321MM.aternos.me:13753";
+            navigator.clipboard.writeText(ipText).then(() => {
+                const btn = document.querySelector('.btn-copy');
+                btn.innerText = "Copied to Clipboard!";
+                setTimeout(() => {
+                    btn.innerText = "📋 Copy Server IP";
+                }, 2000);
+            });
         }
-
-        checkStatus();
-        setInterval(checkStatus, 10000);
     </script>
 </body>
 </html>
