@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Minecraft Server Manager</title>
+    <title>Minecraft Server Status</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
         body { background-color: #11111b; color: #cdd6f4; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
@@ -15,15 +15,13 @@
         .status-value { font-size: 2rem; font-weight: 800; text-transform: uppercase; color: #89b4fa; }
         .btn { width: 100%; padding: 16px; border: none; border-radius: 12px; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: transform 0.1s, opacity 0.2s; margin-bottom: 12px; }
         .btn:active { transform: scale(0.98); }
-        .btn-start { background: #a6e3a1; color: #11111b; }
         .btn-refresh { background: #313244; color: #cdd6f4; }
-        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
         .info-text { font-size: 0.85rem; color: #a6adc8; margin-top: 12px; min-height: 20px; }
     </style>
 </head>
 <body>
     <div class="card">
-        <h1>Server Manager</h1>
+        <h1>Server Status</h1>
         <div class="ip-badge">MaxMax123321MM.aternos.me:13753</div>
 
         <div class="status-box">
@@ -31,7 +29,6 @@
             <div id="status" class="status-value">CHECKING...</div>
         </div>
 
-        <button id="startBtn" class="btn btn-start" onclick="startServer()">⚡ START SERVER</button>
         <button id="refreshBtn" class="btn btn-refresh" onclick="checkStatus()">🔄 Refresh Status</button>
 
         <div id="info" class="info-text">Auto-refreshing every 10 seconds...</div>
@@ -41,14 +38,14 @@
         const SERVER_ADDRESS = "MaxMax123321MM.aternos.me:13753";
 
         async function checkStatus() {
+            const statusEl = document.getElementById('status');
+            const infoEl = document.getElementById('info');
+            
             try {
-                // Uses mcsrvstat.us which handles dynamic Aternos ports cleanly
-                const res = await fetch(`https://api.mcsrvstat.us/2/${SERVER_ADDRESS}`);
+                // Cache-buster (?t=...) prevents the API from serving stale cached results
+                const res = await fetch(`https://api.mcsrvstat.us/2/${SERVER_ADDRESS}?t=${Date.now()}`);
                 const data = await res.json();
                 
-                const statusEl = document.getElementById('status');
-                const infoEl = document.getElementById('info');
-
                 if (data.online) {
                     statusEl.innerText = "ONLINE";
                     statusEl.style.color = "#a6e3a1";
@@ -56,28 +53,12 @@
                 } else {
                     statusEl.innerText = "OFFLINE";
                     statusEl.style.color = "#f38ba8";
-                    infoEl.innerText = "Server is offline. Tap start above!";
+                    infoEl.innerText = "Server is currently offline.";
                 }
             } catch (err) {
-                console.error(err);
-            }
-        }
-
-        async function startServer() {
-            const startBtn = document.getElementById('startBtn');
-            const infoEl = document.getElementById('info');
-            startBtn.disabled = true;
-            infoEl.innerText = "Sending start command...";
-
-            try {
-                const res = await fetch('/api/start', { method: 'POST' });
-                const data = await res.json();
-                infoEl.innerText = data.message;
-                setTimeout(checkStatus, 5000);
-            } catch (err) {
-                infoEl.innerText = "Error triggering start command.";
-            } finally {
-                startBtn.disabled = false;
+                statusEl.innerText = "ERROR";
+                statusEl.style.color = "#f38ba8";
+                infoEl.innerText = "Failed to fetch status.";
             }
         }
 
