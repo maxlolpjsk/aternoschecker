@@ -37,8 +37,7 @@
     </div>
 
     <script>
-        const HOST = "MaxMax123321MM.aternos.me";
-        const PORT = "13753";
+        const SERVER_ADDRESS = "MaxMax123321MM.aternos.me:13753";
 
         async function checkStatus() {
             const statusEl = document.getElementById('status');
@@ -48,24 +47,24 @@
             statusEl.style.color = "#89b4fa";
 
             try {
-                // Fetching with a strict timestamp cache-buster
-                const res = await fetch(`https://api.minetools.eu/ping/${HOST}/${PORT}?t=${Date.now()}`);
-                const data = await res.json();
+                // Using mcstatus.io API with a forced random cache-buster query parameter
+                const res = await fetch(`https://api.mcstatus.io/v2/status/java/${SERVER_ADDRESS}?_=${new Date().getTime()}`);
+                const data = res.ok ? await res.json() : null;
                 
-                // Check if minetools returned a valid response with max slots defined (offline servers usually omit or return null max players)
-                if (data.error || !data.players || data.players.max === undefined) {
-                    statusEl.innerText = "OFFLINE";
-                    statusEl.style.color = "#f38ba8";
-                    infoEl.innerText = "Server is currently offline.";
-                } else {
+                // Strict validation: data.online must explicitly be true
+                if (data && data.online === true) {
                     statusEl.innerText = "ONLINE";
                     statusEl.style.color = "#a6e3a1";
                     infoEl.innerText = `Players: ${data.players.online}/${data.players.max}`;
+                } else {
+                    statusEl.innerText = "OFFLINE";
+                    statusEl.style.color = "#f38ba8";
+                    infoEl.innerText = "Server is currently offline.";
                 }
             } catch (err) {
                 statusEl.innerText = "OFFLINE";
                 statusEl.style.color = "#f38ba8";
-                infoEl.innerText = "Unable to reach server.";
+                infoEl.innerText = "Server is currently offline.";
             }
         }
 
