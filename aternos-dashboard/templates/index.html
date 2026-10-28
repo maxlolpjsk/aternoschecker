@@ -34,23 +34,21 @@
         <button id="startBtn" class="btn btn-start" onclick="startServer()">⚡ START SERVER</button>
         <button id="refreshBtn" class="btn btn-refresh" onclick="checkStatus()">🔄 Refresh Status</button>
 
-        <div id="info" class="info-text">Connecting to server status...</div>
+        <div id="info" class="info-text">Auto-refreshing every 10 seconds...</div>
     </div>
 
     <script>
         const SERVER_ADDRESS = "MaxMax123321MM.aternos.me:13753";
 
         async function checkStatus() {
-            const statusEl = document.getElementById('status');
-            const infoEl = document.getElementById('info');
-            statusEl.innerText = "CHECKING...";
-            statusEl.style.color = "#89b4fa";
-            
             try {
-                // Queries mcstatus.io directly from the user's phone browser (bypasses Render/Cloudflare blocks)
-                const res = await fetch(`https://api.mcstatus.io/v2/status/java/${SERVER_ADDRESS}`);
+                // Uses mcsrvstat.us which handles dynamic Aternos ports cleanly
+                const res = await fetch(`https://api.mcsrvstat.us/2/${SERVER_ADDRESS}`);
                 const data = await res.json();
                 
+                const statusEl = document.getElementById('status');
+                const infoEl = document.getElementById('info');
+
                 if (data.online) {
                     statusEl.innerText = "ONLINE";
                     statusEl.style.color = "#a6e3a1";
@@ -58,12 +56,10 @@
                 } else {
                     statusEl.innerText = "OFFLINE";
                     statusEl.style.color = "#f38ba8";
-                    infoEl.innerText = "Server is currently offline.";
+                    infoEl.innerText = "Server is offline. Tap start above!";
                 }
             } catch (err) {
-                statusEl.innerText = "ERROR";
-                statusEl.style.color = "#f38ba8";
-                infoEl.innerText = "Failed to fetch server status.";
+                console.error(err);
             }
         }
 
@@ -71,7 +67,7 @@
             const startBtn = document.getElementById('startBtn');
             const infoEl = document.getElementById('info');
             startBtn.disabled = true;
-            infoEl.innerText = "Sending start command via backend...";
+            infoEl.innerText = "Sending start command...";
 
             try {
                 const res = await fetch('/api/start', { method: 'POST' });
@@ -86,6 +82,7 @@
         }
 
         checkStatus();
+        setInterval(checkStatus, 10000);
     </script>
 </body>
 </html>
